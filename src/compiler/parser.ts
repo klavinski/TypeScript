@@ -5072,6 +5072,7 @@ namespace ts {
             return token() === SyntaxKind.DotDotDotToken ? parseSpreadElement() :
                 token() === SyntaxKind.QuestionToken ? parsePartialApplicationElement() :
                 token() === SyntaxKind.CommaToken ? <Expression>createNode(SyntaxKind.OmittedExpression) :
+                token() === SyntaxKind.QuestionToken ? <PartialApplicationElement>createNode(SyntaxKind.PartialApplicationElement) :
                 parseAssignmentExpressionOrHigher();
         }
 

@@ -1130,6 +1130,10 @@ namespace ts {
         return node.kind === SyntaxKind.BinaryExpression && (<BinaryExpression>node).operatorToken.kind === SyntaxKind.QuestionQuestionToken;
     }
 
+    export function isPartialApplicationExpression(node: Node): node is PartialApplicationExpression {
+        return node.kind === SyntaxKind.PartialApplicationExpression;
+    }
+
     export function isNewExpression(node: Node): node is NewExpression {
         return node.kind === SyntaxKind.NewExpression;
     }

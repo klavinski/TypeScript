@@ -1060,7 +1060,7 @@ namespace ts {
     export function isCallExpression(node: Node): node is CallExpression {
         return node.kind === SyntaxKind.CallExpression;
     }
-
+    
     export function isCallChain(node: Node): node is CallChain {
         return isCallExpression(node) && !!(node.flags & NodeFlags.OptionalChain);
     }
@@ -1105,6 +1105,10 @@ namespace ts {
 
     export function isNullishCoalesce(node: Node) {
         return node.kind === SyntaxKind.BinaryExpression && (<BinaryExpression>node).operatorToken.kind === SyntaxKind.QuestionQuestionToken;
+    }
+
+    export function isPartialApplicationExpression(node: Node): node is PartialApplicationExpression {
+        return node.kind === SyntaxKind.PartialApplicationExpression;
     }
 
     export function isNewExpression(node: Node): node is NewExpression {

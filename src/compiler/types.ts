@@ -185,6 +185,7 @@ namespace ts {
         ColonToken,
         AtToken,
         QuestionQuestionToken,
+        PipeGreaterThanToken,
         /** Only the JSDoc scanner produces BacktickToken. The normal scanner produces NoSubstitutionTemplateLiteral and related kinds. */
         BacktickToken,
         // Assignments
@@ -341,6 +342,8 @@ namespace ts {
         ParenthesizedExpression,
         FunctionExpression,
         ArrowFunction,
+        PartialApplicationExpression,
+        PartialApplicationElement,
         DeleteExpression,
         TypeOfExpression,
         VoidExpression,
@@ -1682,6 +1685,20 @@ namespace ts {
         kind: SyntaxKind.FunctionExpression;
         name?: Identifier;
         body: FunctionBody;  // Required, whereas the member inherited from FunctionDeclaration is optional
+    }
+
+    export interface PartialApplicationExpression extends PrimaryExpression, FunctionLikeDeclarationBase, JSDocContainer {
+        kind: SyntaxKind.FunctionExpression;
+        questionToken: QuestionToken,
+        name?: Identifier;
+        body?: FunctionBody;  // Required?, whereas the member inherited from FunctionDeclaration is optional
+    }
+
+    
+    export interface PartialApplicationElement extends Expression {
+        kind: SyntaxKind.PartialApplicationElement;
+        questionToken: QuestionToken,
+        argumentIndex: number;
     }
 
     export interface ArrowFunction extends Expression, FunctionLikeDeclarationBase, JSDocContainer {

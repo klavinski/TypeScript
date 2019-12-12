@@ -1111,6 +1111,10 @@ namespace ts {
         return node.kind === SyntaxKind.PartialApplicationExpression;
     }
 
+    export function isPartialApplicationElement(node: Node): node is PartialApplicationElement {
+        return node.kind === SyntaxKind.PartialApplicationElement;
+    }
+
     export function isNewExpression(node: Node): node is NewExpression {
         return node.kind === SyntaxKind.NewExpression;
     }

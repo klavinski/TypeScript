@@ -25503,7 +25503,9 @@ namespace ts {
                         return result;
                     }
 
-                    let typeParams: Symbol[] = callSignature.parameters
+                    const optionalParamsOmitted = callSignature.parameters
+                        .filter((_param, i) => args[i] !== undefined);
+                    let typeParams: Symbol[] = optionalParamsOmitted
                         .map((param, i) => ({
                             originalParam: param,
                             isPartial: isPartialApplicationElement(args[i]),
@@ -29040,7 +29042,28 @@ namespace ts {
                         return null;
                     }
 
-                    let typeParams: Symbol[] = callSignature.parameters
+                    // Fix when partially applying function that has rest params.
+                    const extraParams = expr.arguments.slice(callSignature.parameters.length);
+                    // const extraParams = callSignature.hasRestParam
+                    //     ? []
+                    //     : expr.arguments.slice(callSignature.parameters.length);
+
+                    extraParams
+                        .forEach(_extraParam =>
+                            console.log('Partial application extra parameter: ')
+                            // console.log('Partial application extra parameter: ', extraParam.symbol);
+                        );
+
+                    const omittedParams = callSignature.parameters
+                        .filter((_param, i) => expr.arguments[i] === undefined);
+                    const omittedParamsWithoutInitializer = omittedParams
+                        .filter(param => !(param.valueDeclaration as any)?.initializer);
+
+                    omittedParamsWithoutInitializer
+                        .forEach(() => console.log('Partial application omits non-optional parameter'));
+                    const optionalParamsOmitted = callSignature.parameters
+                        .filter((_param, i) => expr.arguments[i] !== undefined);
+                    const typeParams: Symbol[] = optionalParamsOmitted
                         .map((param, i) => ({
                             originalParam: param,
                             isPartial: isPartialApplicationElement(expr.arguments[i]),
@@ -29053,16 +29076,16 @@ namespace ts {
                         members: emptySymbols,
                         properties: [],
                         callSignatures: [createSignature(
-                        undefined,
-                        undefined,
-                        undefined,
-                        typeParams,
+                            undefined,
+                            undefined,
+                            undefined,
+                            typeParams,
                             getReturnTypeOfSingleNonGenericCallSignature(funcType),
                             callSignature.resolvedTypePredicate,
-                        expr.arguments.filter(isPartialApplicationElement).length,
-                        (typeParams.length - expr.arguments.filter(isPartialApplicationElement).length > 0)
-                            ? SignatureFlags.HasLiteralTypes
-                            : SignatureFlags.None                        
+                            expr.arguments.filter(isPartialApplicationElement).length,
+                            (typeParams.length - expr.arguments.filter(isPartialApplicationElement).length > 0)
+                                ? SignatureFlags.HasLiteralTypes
+                                : SignatureFlags.None
                         )],
                         constructSignatures: [],
                         // stringIndexInfo: ,
@@ -31803,8 +31826,8 @@ namespace ts {
             if (type && rType.callSignatures && rType.callSignatures.length > 0) {
                 const callSignature = rType.callSignatures[0];
                 if (callSignature.resolvedReturnType && callSignature.resolvedReturnType.id == 13) {
-                    console.log('2 callSignature.resolvedReturnType.id: ', callSignature.resolvedReturnType.id, ' .intrinsicName: ', (callSignature.resolvedReturnType as any).intrinsicName);
-                    console.log('params: ', callSignature.parameters);
+                    // console.log('2 callSignature.resolvedReturnType.id: ', callSignature.resolvedReturnType.id, ' .intrinsicName: ', (callSignature.resolvedReturnType as any).intrinsicName);
+                    // console.log('params: ', callSignature.parameters);
                 }
             }
             if (node === symbol.valueDeclaration) {

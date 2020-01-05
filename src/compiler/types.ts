@@ -166,6 +166,7 @@ namespace ts {
         EqualsEqualsEqualsToken,
         ExclamationEqualsEqualsToken,
         EqualsGreaterThanToken,
+        BarGreaterThanToken,
         PlusToken,
         MinusToken,
         AsteriskToken,
@@ -339,6 +340,7 @@ namespace ts {
         PropertyAccessExpression,
         ElementAccessExpression,
         CallExpression,
+        PipelineExpression,
         NewExpression,
         TaggedTemplateExpression,
         TypeAssertionExpression,
@@ -763,6 +765,7 @@ namespace ts {
     export type EqualsToken = Token<SyntaxKind.EqualsToken>;
     export type AsteriskToken = Token<SyntaxKind.AsteriskToken>;
     export type EqualsGreaterThanToken = Token<SyntaxKind.EqualsGreaterThanToken>;
+    export type BarGreaterThanToken = Token<SyntaxKind.BarGreaterThanToken>;
     export type EndOfFileToken = Token<SyntaxKind.EndOfFileToken> & JSDocContainer;
     export type ReadonlyToken = Token<SyntaxKind.ReadonlyKeyword>;
     export type AwaitKeywordToken = Token<SyntaxKind.AwaitKeyword>;
@@ -1710,6 +1713,13 @@ namespace ts {
         name: never;
     }
 
+    export interface PipelineOperator extends Expression, JSDocContainer {
+        kind: SyntaxKind.PipelineExpression;
+        barGreaterThanToken: BarGreaterThanToken;
+        body: ConciseBody;
+        name: never;
+    }
+
     // The text property of a LiteralExpression stores the interpreted value of the literal in text form. For a StringLiteral,
     // or any literal of a template, this means quotes have been removed and escapes have been converted to actual characters.
     // For a NumericLiteral, the stored value is the toString() representation of the number. For example 1, 1.00, and 1e0 are all stored as just "1".
@@ -1916,6 +1926,14 @@ namespace ts {
         kind: SyntaxKind.CallExpression;
         expression: LeftHandSideExpression;
         questionDotToken?: QuestionDotToken;
+        typeArguments?: NodeArray<TypeNode>;
+        arguments: NodeArray<Expression>;
+    }
+
+    export interface PipelineExpression extends LeftHandSideExpression, Declaration {
+        kind: SyntaxKind.PipelineExpression;
+        expression: LeftHandSideExpression;
+        barGreaterThanToken: BarGreaterThanToken;
         typeArguments?: NodeArray<TypeNode>;
         arguments: NodeArray<Expression>;
     }

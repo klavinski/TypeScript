@@ -4000,6 +4000,16 @@ namespace ts {
         }
 
         function parseConditionalExpressionRest(leftOperand: Expression): Expression {
+            const barGreaterThanToken = parseOptionalToken(SyntaxKind.BarGreaterThanToken);
+            if (barGreaterThanToken) {
+                const node = <PipelineExpression>createNode(SyntaxKind.PipelineExpression, leftOperand.pos);
+                node.barGreaterThanToken = barGreaterThanToken;
+                node.argument = leftOperand;
+                node.typeArguments = undefined; // TODO
+                node.expression = parseAssignmentExpressionOrHigher();
+                return finishNode(node);
+            }
+
             // Note: we are passed in an expression which was produced from parseBinaryExpressionOrHigher.
             const questionToken = parseOptionalToken(SyntaxKind.QuestionToken);
             if (!questionToken) {

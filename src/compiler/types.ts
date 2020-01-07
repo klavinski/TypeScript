@@ -1932,10 +1932,10 @@ namespace ts {
 
     export interface PipelineExpression extends LeftHandSideExpression, Declaration {
         kind: SyntaxKind.PipelineExpression;
-        expression: LeftHandSideExpression;
+        expression: Expression;
         barGreaterThanToken: BarGreaterThanToken;
         typeArguments?: NodeArray<TypeNode>;
-        arguments: NodeArray<Expression>;
+        argument: Expression;
     }
 
     export interface CallChain extends CallExpression {

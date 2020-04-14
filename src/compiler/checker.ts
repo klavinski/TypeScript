@@ -25494,10 +25494,6 @@ namespace ts {
             }
             if (result) {
                 if (args.some(isPartialApplicationElement)) {
-                    console.log('Partial application');
-                    
-                    // const funcType = result;
-        
                     const callSignature = result;
                     if (!callSignature.resolvedReturnType) {
                         return result;
@@ -25505,7 +25501,7 @@ namespace ts {
 
                     const optionalParamsOmitted = callSignature.parameters
                         .filter((_param, i) => args[i] !== undefined);
-                    let typeParams: Symbol[] = optionalParamsOmitted
+                    const typeParams: Symbol[] = optionalParamsOmitted
                         .map((param, i) => ({
                             originalParam: param,
                             isPartial: isPartialApplicationElement(args[i]),
@@ -25514,7 +25510,7 @@ namespace ts {
                         .map(({ originalParam }) => originalParam);
 
                     const pAType = {
-                        ...createObjectType(ObjectFlags.Anonymous, undefined),
+                        ...createObjectType(ObjectFlags.Anonymous),
                         // ...createObjectType(ObjectFlags.Anonymous, node.symbol),
                         members: emptySymbols,
                         properties: [],
@@ -25529,13 +25525,13 @@ namespace ts {
                         args.filter(isPartialApplicationElement).length,
                         (typeParams.length - args.filter(isPartialApplicationElement).length > 0)
                             ? SignatureFlags.HasLiteralTypes
-                            : SignatureFlags.None                        
+                            : SignatureFlags.None
                         )],
                         constructSignatures: [],
                         // stringIndexInfo: ,
                         // numberIndexInfo: ,
                     };
-                    pAType;
+
                     const newSig = cloneSignature(callSignature);
                     newSig.resolvedReturnType = pAType;
                     return newSig;
@@ -25550,7 +25546,7 @@ namespace ts {
                     //     args.filter(isPartialApplicationElement).length,
                     //     (typeParams.length - args.filter(isPartialApplicationElement).length > 0)
                     //         ? SignatureFlags.HasLiteralTypes
-                    //         : SignatureFlags.None                        
+                    //         : SignatureFlags.None
                     //     );
                     // return result;
                 }
@@ -29033,13 +29029,11 @@ namespace ts {
             // signature where we can just fetch the return type without checking the arguments.
             if (isCallExpression(expr) && expr.expression.kind !== SyntaxKind.SuperKeyword && !isRequireCall(expr, /*checkArgumentIsStringLiteralLike*/ true) && !isSymbolOrSymbolForCall(expr)) {
                 if (expr.arguments.some(isPartialApplicationElement)) {
-                    console.log('Partial application');
-                    
                     const funcType = checkNonNullExpression(expr.expression);
-        
+
                     const callSignature = getSingleCallSignature(funcType);
                     if (!callSignature) {
-                        return null;
+                        return undefined;
                     }
 
                     // Fix when partially applying function that has rest params.
@@ -29050,7 +29044,7 @@ namespace ts {
 
                     extraParams
                         .forEach(_extraParam =>
-                            console.log('Partial application extra parameter: ')
+                            console.log("Partial application extra parameter: ")
                             // console.log('Partial application extra parameter: ', extraParam.symbol);
                         );
 
@@ -29060,7 +29054,7 @@ namespace ts {
                         .filter(param => !(param.valueDeclaration as any)?.initializer);
 
                     omittedParamsWithoutInitializer
-                        .forEach(() => console.log('Partial application omits non-optional parameter'));
+                        .forEach(() => console.log("Partial application omits non-optional parameter"));
                     const optionalParamsOmitted = callSignature.parameters
                         .filter((_param, i) => expr.arguments[i] !== undefined);
                     const typeParams: Symbol[] = optionalParamsOmitted
@@ -29101,7 +29095,7 @@ namespace ts {
                         }))
                         .filter(({ isPartial }) => isPartial === false)
                         .map(({ originalParam }) => originalParam);
-                    
+
                     const returnedFunctionType = createObjectType(ObjectFlags.Anonymous, funcType.symbol);
                     returnedFunctionType.callSignatures = [createSignature(
                         undefined,
@@ -29113,9 +29107,9 @@ namespace ts {
                         expr.arguments.filter(isPartialApplicationElement).length,
                         (returnedFunctionTypeParams.length - expr.arguments.filter(isPartialApplicationElement).length > 0)
                             ? SignatureFlags.HasLiteralTypes
-                            : SignatureFlags.None                        
+                            : SignatureFlags.None
                     )];
-        
+
                     pAType.callSignatures = [createSignature(
                         undefined,
                         undefined,
@@ -29126,8 +29120,8 @@ namespace ts {
                         expr.arguments.length,
                         // ((typeParams.length - expr.arguments.filter(isPartialApplicationElement).length) > 0)
                         //     ? SignatureFlags.HasLiteralTypes
-                        //     : SignatureFlags.None                        
-                        SignatureFlags.None                        
+                        //     : SignatureFlags.None
+                        SignatureFlags.None
                     )];
 */
                     return pAType;
@@ -31825,7 +31819,7 @@ namespace ts {
             const rType = (<ResolvedType>type);
             if (type && rType.callSignatures && rType.callSignatures.length > 0) {
                 const callSignature = rType.callSignatures[0];
-                if (callSignature.resolvedReturnType && callSignature.resolvedReturnType.id == 13) {
+                if (callSignature.resolvedReturnType && callSignature.resolvedReturnType.id === 13) {
                     // console.log('2 callSignature.resolvedReturnType.id: ', callSignature.resolvedReturnType.id, ' .intrinsicName: ', (callSignature.resolvedReturnType as any).intrinsicName);
                     // console.log('params: ', callSignature.parameters);
                 }

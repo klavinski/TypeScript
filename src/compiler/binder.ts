@@ -3577,6 +3577,10 @@ namespace ts {
             transformFlags |= TransformFlags.ContainsDynamicImport;
         }
 
+        if ((node.arguments).some(isPartialApplicationElement)) {
+            transformFlags |= TransformFlags.ContainsPartialApplication;
+        }
+
         node.transformFlags = transformFlags | TransformFlags.HasComputedFlags;
         return transformFlags & ~TransformFlags.ArrayLiteralOrCallOrNewExcludes;
     }

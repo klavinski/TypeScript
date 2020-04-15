@@ -5781,6 +5781,7 @@ namespace ts {
         ContainsHoistedDeclarationOrCompletion = 1 << 20,
         ContainsDynamicImport = 1 << 21,
         ContainsClassFields = 1 << 22,
+        ContainsPartialApplication = 1 << 23,
 
         // Please leave this as 1 << 29.
         // It is the maximum bit we can set before we outgrow the size of a v8 small integer (SMI) on an x86 system.

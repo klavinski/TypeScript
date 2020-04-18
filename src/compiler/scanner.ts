@@ -191,6 +191,7 @@ namespace ts {
         "~": SyntaxKind.TildeToken,
         "&&": SyntaxKind.AmpersandAmpersandToken,
         "||": SyntaxKind.BarBarToken,
+        "|>": SyntaxKind.BarGreaterThanToken,
         "?": SyntaxKind.QuestionToken,
         "??": SyntaxKind.QuestionQuestionToken,
         "?.": SyntaxKind.QuestionDotToken,

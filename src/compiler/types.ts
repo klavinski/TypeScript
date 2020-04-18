@@ -1587,6 +1587,11 @@ namespace ts {
         | LogicalOperator
         ;
 
+    export type PipelineOperatorOrHigher
+        = LogicalOperatorOrHigher
+        | SyntaxKind.BarGreaterThanToken
+        ;
+
     // see: https://tc39.github.io/ecma262/#prod-AssignmentOperator
     export type CompoundAssignmentOperator
         = SyntaxKind.PlusEqualsToken
@@ -1612,7 +1617,7 @@ namespace ts {
     // see: https://tc39.github.io/ecma262/#prod-AssignmentExpression
     export type AssignmentOperatorOrHigher
         = SyntaxKind.QuestionQuestionToken
-        | LogicalOperatorOrHigher
+        | PipelineOperatorOrHigher
         | AssignmentOperator
         ;
 
@@ -1724,13 +1729,6 @@ namespace ts {
     export interface ArrowFunction extends Expression, FunctionLikeDeclarationBase, JSDocContainer {
         kind: SyntaxKind.ArrowFunction;
         equalsGreaterThanToken: EqualsGreaterThanToken;
-        body: ConciseBody;
-        name: never;
-    }
-
-    export interface PipelineOperator extends Expression, JSDocContainer {
-        kind: SyntaxKind.PipelineExpression;
-        barGreaterThanToken: BarGreaterThanToken;
         body: ConciseBody;
         name: never;
     }
@@ -1945,12 +1943,18 @@ namespace ts {
         arguments: NodeArray<Expression>;
     }
 
-    export interface PipelineExpression extends LeftHandSideExpression, Declaration {
+    type plainOneTuple<T extends Node> = readonly [T];
+
+    export interface NodeArrayOneTuple<T extends Node> extends plainOneTuple<T>, TextRange {
+        hasTrailingComma?: false;
+        /* @internal */ transformFlags: TransformFlags;   // Flags for transforms, possibly undefined
+    }
+
+    export interface PipelineExpression extends Omit<CallExpression, 'kind' | 'expression'> {
         kind: SyntaxKind.PipelineExpression;
         expression: Expression;
+        arguments: NodeArrayOneTuple<Expression>;
         barGreaterThanToken: BarGreaterThanToken;
-        typeArguments?: NodeArray<TypeNode>;
-        argument: Expression;
     }
 
     export interface CallChain extends CallExpression {
@@ -2040,7 +2044,7 @@ namespace ts {
         /*@internal*/ questionDotToken?: QuestionDotToken; // NOTE: Invalid syntax, only used to report a grammar error.
     }
 
-    export type CallLikeExpression = CallExpression | NewExpression | TaggedTemplateExpression | Decorator | JsxOpeningLikeElement;
+    export type CallLikeExpression = CallExpression | NewExpression | TaggedTemplateExpression | Decorator | PipelineExpression | JsxOpeningLikeElement;
 
     export interface AsExpression extends Expression {
         kind: SyntaxKind.AsExpression;

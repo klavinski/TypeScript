@@ -1193,6 +1193,10 @@ namespace ts {
         return node.kind === SyntaxKind.BinaryExpression;
     }
 
+    export function isPipelineExpression(node: Node): node is PipelineExpression {
+        return node.kind === SyntaxKind.PipelineExpression;
+    }
+
     export function isConditionalExpression(node: Node): node is ConditionalExpression {
         return node.kind === SyntaxKind.ConditionalExpression;
     }
@@ -2088,6 +2092,7 @@ namespace ts {
             case SyntaxKind.ElementAccessExpression:
             case SyntaxKind.NewExpression:
             case SyntaxKind.CallExpression:
+            case SyntaxKind.PipelineExpression:
             case SyntaxKind.JsxElement:
             case SyntaxKind.JsxSelfClosingElement:
             case SyntaxKind.JsxFragment:

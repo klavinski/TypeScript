@@ -3609,7 +3609,7 @@ namespace ts {
             // Otherwise, we try to parse out the conditional expression bit.  We want to allow any
             // binary expression here, so we pass in the 'lowest' precedence here so that it matches
             // and consumes anything.
-            const expr = parseBinaryExpressionOrHigher(/*precedence*/ 0);
+            const expr = parseBinaryExpressionOrHigher(/*precedence*/ 1);
 
             // To avoid a look-ahead, we did not handle the case of an arrow function with a single un-parenthesized
             // parameter ('x => ...') above. We handle it here by checking if the parsed expression was a single
@@ -3999,15 +3999,28 @@ namespace ts {
                 : doOutsideOfAwaitContext(parseAssignmentExpressionOrHigher);
         }
 
-        function parseConditionalExpressionRest(leftOperand: Expression): Expression {
-            const barGreaterThanToken = parseOptionalToken(SyntaxKind.BarGreaterThanToken);
-            if (barGreaterThanToken) {
-                const node = <PipelineExpression>createNode(SyntaxKind.PipelineExpression, leftOperand.pos);
-                node.barGreaterThanToken = barGreaterThanToken;
-                node.argument = leftOperand;
-                node.typeArguments = undefined; // TODO
-                node.expression = parseAssignmentExpressionOrHigher();
-                return finishNode(node);
+        function parsePipelineExpression(leftOperand: Expression, barGreaterThanToken: BarGreaterThanToken): Expression {
+            const node = <PipelineExpression>createNode(SyntaxKind.PipelineExpression, leftOperand.pos);
+            node.barGreaterThanToken = barGreaterThanToken;
+            node.arguments = {
+                ...[leftOperand],
+                pos: leftOperand.pos,
+                end: leftOperand.end,
+                transformFlags: TransformFlags.None,
+            };
+            node.typeArguments = undefined; // TODO
+
+            // If the "function" has too little code in it (getFunction instead of getFunction()), the parse function below is wrong.
+            node.expression = parseBinaryExpressionOrHigher(/*precedence*/ 1);
+            // node.expression = parseAssignmentExpressionOrHigher();
+            return finishNode(node);
+        }
+
+        function parseConditionalExpressionRest(startLeftOperand: Expression): Expression {
+            let barGreaterThanToken;
+            let leftOperand = startLeftOperand;
+            while (barGreaterThanToken = parseOptionalToken(SyntaxKind.BarGreaterThanToken)) {
+                leftOperand = parsePipelineExpression(leftOperand, barGreaterThanToken);
             }
 
             // Note: we are passed in an expression which was produced from parseBinaryExpressionOrHigher.

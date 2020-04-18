@@ -26339,6 +26339,9 @@ namespace ts {
                 case SyntaxKind.JsxOpeningElement:
                 case SyntaxKind.JsxSelfClosingElement:
                     return resolveJsxOpeningLikeElement(node, candidatesOutArray, checkMode);
+                case SyntaxKind.PipelineExpression:
+                    throw new Error('Noo!');
+                    // return resolveCall(node.left, [], candidatesOutArray, checkMode, 0);
             }
             throw Debug.assertNever(node, "Branch in 'resolveSignature' should be unreachable.");
         }

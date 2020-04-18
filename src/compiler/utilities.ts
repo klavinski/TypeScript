@@ -1566,7 +1566,7 @@ namespace ts {
         }
     }
 
-    export function getImmediatelyInvokedFunctionExpression(func: Node): CallExpression | undefined {
+    export function getImmediatelyInvokedFunctionExpression(func: Node): CallExpression | PipelineExpression | undefined {
         if (func.kind === SyntaxKind.FunctionExpression || func.kind === SyntaxKind.ArrowFunction) {
             let prev = func;
             let parent = func.parent;
@@ -1577,6 +1577,9 @@ namespace ts {
             if (parent.kind === SyntaxKind.CallExpression && (parent as CallExpression).expression === prev) {
                 return parent as CallExpression;
             }
+            // if (isPipelineExpression(parent) && parent.right === prev) {
+            //     return parent;
+            // }
         }
     }
 
@@ -3299,6 +3302,8 @@ namespace ts {
 
     export function getBinaryOperatorPrecedence(kind: SyntaxKind): number {
         switch (kind) {
+            case SyntaxKind.BarGreaterThanToken:
+                return 1;
             case SyntaxKind.QuestionQuestionToken:
                 return 4;
             case SyntaxKind.BarBarToken:

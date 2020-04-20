@@ -1935,7 +1935,7 @@ namespace ts {
         /* @internal */ transformFlags: TransformFlags;   // Flags for transforms, possibly undefined
     }
 
-    export interface PipelineExpression extends Omit<CallExpression, 'kind' | 'expression'> {
+    export interface PipelineExpression extends Omit<CallExpression, "kind" | "expression"> {
         kind: SyntaxKind.PipelineExpression;
         expression: Expression;
         arguments: NodeArray<Expression>;

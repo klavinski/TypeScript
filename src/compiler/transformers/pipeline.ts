@@ -1,6 +1,5 @@
 /*@internal*/
 namespace ts {
-    
     // function transformPipelineExpressionWorker(node: PipelineExpression, pipelineVariable: Identifier, expressions: Expression[], top: boolean) {
     //     if (isPipelineExpression(node.left)) {
     //         transformPipelineExpressionWorker(node.left, pipelineVariable, expressions, false);
@@ -28,9 +27,9 @@ namespace ts {
                             // setCommentRange(transformed, node);
                             // return transformed;
                             const call = createCall(
-                                visitNode(node.expression, visitor) as Expression,
+                                visitNode(node.expression, visitor),
                                 /*typeArguments*/ undefined,
-                                [visitNode(node.arguments[0], visitor) as Expression]
+                                [visitNode(node.arguments[0], visitor)]
                             );
                             setSourceMapRange(call, node);
                             setCommentRange(call, node);

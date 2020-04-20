@@ -1953,7 +1953,8 @@ namespace ts {
     export interface PipelineExpression extends Omit<CallExpression, 'kind' | 'expression'> {
         kind: SyntaxKind.PipelineExpression;
         expression: Expression;
-        arguments: NodeArrayOneTuple<Expression>;
+        arguments: NodeArray<Expression>;
+        // arguments: NodeArrayOneTuple<Expression>;
         barGreaterThanToken: BarGreaterThanToken;
     }
 

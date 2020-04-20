@@ -1162,6 +1162,29 @@ namespace ts {
             : node;
     }
 
+    export function createPipeline(expression: Expression, typeArguments: readonly TypeNode[] | undefined, argumentsArray: readonly [Expression]) {
+        const node = <PipelineExpression>createSynthesizedNode(SyntaxKind.CallExpression);
+        node.expression = parenthesizeForAccess(expression);
+        node.typeArguments = asNodeArray(typeArguments);
+        const nA = createNodeArray(argumentsArray);
+        if (nA.length !== 1) {
+            throw ('pipeline with > 1 argument!');
+        }
+        node.arguments = parenthesizeListElements(nA) as NodeArrayOneTuple<typeof node>;
+        return node;
+    }
+
+    export function updatePipeline(node: PipelineExpression, expression: Expression, typeArguments: readonly TypeNode[] | undefined, argumentsArray: readonly Expression[]) {
+        if (argumentsArray.length !== 1) {
+            throw ('pipeline with > 1 argument!');
+        }
+        return node.expression !== expression
+            || node.typeArguments !== typeArguments
+            || node.arguments !== argumentsArray
+            ? updateNode(createPipeline(expression, typeArguments, [argumentsArray[0]]), node)
+            : node;
+    }
+
     export function createCallChain(expression: Expression, questionDotToken: QuestionDotToken | undefined, typeArguments: readonly TypeNode[] | undefined, argumentsArray: readonly Expression[] | undefined) {
         const node = <CallChain>createSynthesizedNode(SyntaxKind.CallExpression);
         node.flags |= NodeFlags.OptionalChain;

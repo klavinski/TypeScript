@@ -511,6 +511,9 @@ namespace ts {
                 case SyntaxKind.CallExpression:
                     return visitCallExpression(<CallExpression>node);
 
+                case SyntaxKind.PipelineExpression:
+                    return visitPipelineExpression(<PipelineExpression>node);
+
                 case SyntaxKind.NewExpression:
                     return visitNewExpression(<NewExpression>node);
 
@@ -2267,6 +2270,14 @@ namespace ts {
 
         function visitCallExpression(node: CallExpression) {
             return updateCall(
+                node,
+                visitNode(node.expression, visitor, isExpression),
+                /*typeArguments*/ undefined,
+                visitNodes(node.arguments, visitor, isExpression));
+        }
+
+        function visitPipelineExpression(node: PipelineExpression) {
+            return updatePipeline(
                 node,
                 visitNode(node.expression, visitor, isExpression),
                 /*typeArguments*/ undefined,

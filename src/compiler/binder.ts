@@ -3466,6 +3466,9 @@ namespace ts {
             case SyntaxKind.CallExpression:
                 return computeCallExpression(<CallExpression>node, subtreeFlags);
 
+            case SyntaxKind.PipelineExpression:
+                return computePipelineExpression(<PipelineExpression>node, subtreeFlags);
+
             case SyntaxKind.NewExpression:
                 return computeNewExpression(<NewExpression>node, subtreeFlags);
 
@@ -3571,6 +3574,32 @@ namespace ts {
             if (isSuperProperty(callee)) {
                 transformFlags |= TransformFlags.ContainsLexicalThis;
             }
+        }
+
+        if (expression.kind === SyntaxKind.ImportKeyword) {
+            transformFlags |= TransformFlags.ContainsDynamicImport;
+        }
+
+        node.transformFlags = transformFlags | TransformFlags.HasComputedFlags;
+        return transformFlags & ~TransformFlags.ArrayLiteralOrCallOrNewExcludes;
+    }
+
+    function computePipelineExpression(node: PipelineExpression, subtreeFlags: TransformFlags) {
+        let transformFlags = subtreeFlags | TransformFlags.ContainsPipeline;
+        const expression = node.expression;
+
+        if (node.flags & NodeFlags.OptionalChain) {
+            transformFlags |= TransformFlags.ContainsES2020;
+        }
+
+        if (node.typeArguments) {
+            transformFlags |= TransformFlags.AssertTypeScript;
+        }
+
+        if (subtreeFlags & TransformFlags.ContainsRestOrSpread) {
+            // If the this node contains a SpreadExpression, then it is an ES6
+            // node.
+            transformFlags |= TransformFlags.AssertES2015;
         }
 
         if (expression.kind === SyntaxKind.ImportKeyword) {

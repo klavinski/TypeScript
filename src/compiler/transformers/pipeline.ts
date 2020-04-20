@@ -17,26 +17,29 @@ namespace ts {
         (context: TransformationContext) => {
             return sourceFile => {
                 const visitor = (node: Node): Node => {
-                    if (isPipelineExpression(node)) {
-                        // const pipelineVariable = createUniqueName('');
-                        // const expressions: Expression[] = [];
-                        // transformPipelineExpressionWorker(node, pipelineVariable, expressions, /*top*/ true);
-                        // const transformed = inlineExpressions(expressions);
-                        // setSourceMapRange(transformed, node);
-                        // setCommentRange(transformed, node);
-                        // return transformed;
-                        const call = createCall(
-                            visitNode(node.expression, visitor) as Expression,
-                            /*typeArguments*/ undefined,
-                            [visitNode(node.arguments[0], visitor) as Expression]
-                        );
-                        setSourceMapRange(call, node);
-                        setCommentRange(call, node);
-                        return call;
-                    }
-                    return visitEachChild(node, visitor, context);;
+                    // if (true) {
+                    if (node.transformFlags & TransformFlags.ContainsPipeline) {
+                        if (isPipelineExpression(node)) {
+                            // const pipelineVariable = createUniqueName('');
+                            // const expressions: Expression[] = [];
+                            // transformPipelineExpressionWorker(node, pipelineVariable, expressions, /*top*/ true);
+                            // const transformed = inlineExpressions(expressions);
+                            // setSourceMapRange(transformed, node);
+                            // setCommentRange(transformed, node);
+                            // return transformed;
+                            const call = createCall(
+                                visitNode(node.expression, visitor) as Expression,
+                                /*typeArguments*/ undefined,
+                                [visitNode(node.arguments[0], visitor) as Expression]
+                            );
+                            setSourceMapRange(call, node);
+                            setCommentRange(call, node);
+                            return call;
+                        }
+                        return visitEachChild(node, visitor, context);;
+                    };
+                    return node;
                 };
-
                 return visitNode(sourceFile, visitor);
             };
         };

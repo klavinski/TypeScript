@@ -228,7 +228,12 @@ namespace ts {
                     visitNode(cbNode, (<CallExpression>node).questionDotToken) ||
                     visitNodes(cbNode, cbNodes, (<CallExpression>node).typeArguments) ||
                     visitNodes(cbNode, cbNodes, (<CallExpression>node).arguments);
-            case SyntaxKind.TaggedTemplateExpression:
+            case SyntaxKind.PipelineExpression:
+                return visitNode(cbNode, (<PipelineExpression>node).expression) ||
+                    visitNode(cbNode, (<PipelineExpression>node).barGreaterThanToken) ||
+                    visitNodes(cbNode, cbNodes, (<PipelineExpression>node).typeArguments) ||
+                    visitNodes(cbNode, cbNodes, (<PipelineExpression>node).arguments);
+        case SyntaxKind.TaggedTemplateExpression:
                 return visitNode(cbNode, (<TaggedTemplateExpression>node).tag) ||
                     visitNode(cbNode, (<TaggedTemplateExpression>node).questionDotToken) ||
                     visitNodes(cbNode, cbNodes, (<TaggedTemplateExpression>node).typeArguments) ||
@@ -4002,12 +4007,16 @@ namespace ts {
         function parsePipelineExpression(leftOperand: Expression, barGreaterThanToken: BarGreaterThanToken): Expression {
             const node = <PipelineExpression>createNode(SyntaxKind.PipelineExpression, leftOperand.pos);
             node.barGreaterThanToken = barGreaterThanToken;
-            node.arguments = {
-                ...[leftOperand],
-                pos: leftOperand.pos,
-                end: leftOperand.end,
-                transformFlags: TransformFlags.None,
-            };
+            // node.arguments = {
+            //     ...[leftOperand],
+            //     pos: leftOperand.pos,
+            //     end: leftOperand.end,
+            //     transformFlags: TransformFlags.None,
+            // };
+            node.arguments = createNodeArray([leftOperand], leftOperand.pos, leftOperand.end);
+            // node.pos = leftOperand.pos,
+            // node.end = leftOperand.end,
+            node.arguments.transformFlags = TransformFlags.None;
             node.typeArguments = undefined; // TODO
 
             // If the "function" has too little code in it (getFunction instead of getFunction()), the parse function below is wrong.

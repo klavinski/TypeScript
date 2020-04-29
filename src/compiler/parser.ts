@@ -229,10 +229,9 @@ namespace ts {
                     visitNodes(cbNode, cbNodes, (<CallExpression>node).typeArguments) ||
                     visitNodes(cbNode, cbNodes, (<CallExpression>node).arguments);
             case SyntaxKind.PipelineExpression:
-                return visitNode(cbNode, (<PipelineExpression>node).expression) ||
+                return visitNode(cbNode, (<PipelineExpression>node).arguments[0]) ||
                     visitNode(cbNode, (<PipelineExpression>node).barGreaterThanToken) ||
-                    visitNodes(cbNode, cbNodes, (<PipelineExpression>node).typeArguments) ||
-                    visitNodes(cbNode, cbNodes, (<PipelineExpression>node).arguments);
+                    visitNode(cbNode, (<PipelineExpression>node).expression);
         case SyntaxKind.TaggedTemplateExpression:
                 return visitNode(cbNode, (<TaggedTemplateExpression>node).tag) ||
                     visitNode(cbNode, (<TaggedTemplateExpression>node).questionDotToken) ||

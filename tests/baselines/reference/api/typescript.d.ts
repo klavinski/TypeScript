@@ -1142,7 +1142,7 @@ declare namespace ts {
     export interface NodeArrayOneTuple<T extends Node> extends plainOneTuple<T>, TextRange {
         hasTrailingComma?: false;
     }
-    export interface PipelineExpression extends Omit<CallExpression, 'kind' | 'expression'> {
+    export interface PipelineExpression extends Omit<CallExpression, "kind" | "expression"> {
         kind: SyntaxKind.PipelineExpression;
         expression: Expression;
         arguments: NodeArray<Expression>;

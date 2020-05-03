@@ -14,7 +14,7 @@ and limitations under the License.
 ***************************************************************************** */
 
 declare namespace ts {
-    const versionMajorMinor = "3.9";
+    const versionMajorMinor = "4.0";
     /** The version of the TypeScript compiler release */
     const version: string;
     /**
@@ -4477,7 +4477,8 @@ declare namespace ts {
      * Starts a new lexical environment and visits a parameter list, suspending the lexical
      * environment upon completion.
      */
-    function visitParameterList(nodes: NodeArray<ParameterDeclaration> | undefined, visitor: Visitor, context: TransformationContext, nodesVisitor?: typeof visitNodes): NodeArray<ParameterDeclaration>;
+    function visitParameterList(nodes: NodeArray<ParameterDeclaration>, visitor: Visitor, context: TransformationContext, nodesVisitor?: <T extends Node>(nodes: NodeArray<T>, visitor: Visitor, test?: (node: Node) => boolean, start?: number, count?: number) => NodeArray<T>): NodeArray<ParameterDeclaration>;
+    function visitParameterList(nodes: NodeArray<ParameterDeclaration> | undefined, visitor: Visitor, context: TransformationContext, nodesVisitor?: <T extends Node>(nodes: NodeArray<T> | undefined, visitor: Visitor, test?: (node: Node) => boolean, start?: number, count?: number) => NodeArray<T> | undefined): NodeArray<ParameterDeclaration> | undefined;
     /**
      * Resumes a suspended lexical environment and visits a function body, ending the lexical
      * environment and merging hoisted declarations upon completion.
@@ -4976,6 +4977,7 @@ declare namespace ts.server {
     interface InitializationFailedResponse extends TypingInstallerResponse {
         readonly kind: EventInitializationFailed;
         readonly message: string;
+        readonly stack?: string;
     }
     interface ProjectResponse extends TypingInstallerResponse {
         readonly projectName: string;
@@ -8336,7 +8338,7 @@ declare namespace ts.server.protocol {
     /**
      * Arguments for navto request message.
      */
-    interface NavtoRequestArgs extends FileRequestArgs {
+    interface NavtoRequestArgs {
         /**
          * Search term to navigate to from current location; term can
          * be '.*' or an identifier prefix.
@@ -8346,6 +8348,10 @@ declare namespace ts.server.protocol {
          *  Optional limit on the number of items to return.
          */
         maxResultCount?: number;
+        /**
+         * The file for the request (absolute pathname required).
+         */
+        file?: string;
         /**
          * Optional flag to indicate we want results for just the current file
          * or the entire project.
@@ -8359,7 +8365,7 @@ declare namespace ts.server.protocol {
      * match the search term given in argument 'searchTerm'.  The
      * context for the search is given by the named file.
      */
-    interface NavtoRequest extends FileRequest {
+    interface NavtoRequest extends Request {
         command: CommandTypes.Navto;
         arguments: NavtoRequestArgs;
     }

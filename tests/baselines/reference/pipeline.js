@@ -8,6 +8,13 @@ const makeAdder = (addNum: number) =>
 
 const added = 2 |> (1 |> makeAdder);
 
+const zeroOrOne = () => (Math.floor(Math.random() * 2)) % 2;
+const ternaryFunctions = 11 |>
+	(zeroOrOne() === 0
+		? (x: number) => x - 1
+		: (x: number) => x + 1
+	);
+
 
 //// [pipeline.js]
 var uried = encodeURI('Foobar');
@@ -16,3 +23,7 @@ var makeAdder = function (addNum) {
     return function (addTo) { return addTo + addNum; };
 };
 var added = (makeAdder(1))(2);
+var zeroOrOne = function () { return (Math.floor(Math.random() * 2)) % 2; };
+var ternaryFunctions = (zeroOrOne() === 0
+    ? function (x) { return x - 1; }
+    : function (x) { return x + 1; })(11);

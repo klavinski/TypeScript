@@ -37,3 +37,49 @@ const added = 2 |> (1 |> makeAdder);
 >1 : 1
 >makeAdder : (addNum: number) => (addTo: number) => number
 
+const zeroOrOne = () => (Math.floor(Math.random() * 2)) % 2;
+>zeroOrOne : () => number
+>() => (Math.floor(Math.random() * 2)) % 2 : () => number
+>(Math.floor(Math.random() * 2)) % 2 : number
+>(Math.floor(Math.random() * 2)) : number
+>Math.floor(Math.random() * 2) : number
+>Math.floor : (x: number) => number
+>Math : Math
+>floor : (x: number) => number
+>Math.random() * 2 : number
+>Math.random() : number
+>Math.random : () => number
+>Math : Math
+>random : () => number
+>2 : 2
+>2 : 2
+
+const ternaryFunctions = 11 |>
+>ternaryFunctions : number
+>11 |>	(zeroOrOne() === 0		? (x: number) => x - 1		: (x: number) => x + 1	) : number
+>11 : 11
+
+	(zeroOrOne() === 0
+>(zeroOrOne() === 0		? (x: number) => x - 1		: (x: number) => x + 1	) : (x: number) => number
+>zeroOrOne() === 0		? (x: number) => x - 1		: (x: number) => x + 1 : (x: number) => number
+>zeroOrOne() === 0 : boolean
+>zeroOrOne() : number
+>zeroOrOne : () => number
+>0 : 0
+
+		? (x: number) => x - 1
+>(x: number) => x - 1 : (x: number) => number
+>x : number
+>x - 1 : number
+>x : number
+>1 : 1
+
+		: (x: number) => x + 1
+>(x: number) => x + 1 : (x: number) => number
+>x : number
+>x + 1 : number
+>x : number
+>1 : 1
+
+	);
+

@@ -22,3 +22,28 @@ const added = 2 |> (1 |> makeAdder);
 >added : Symbol(added, Decl(pipeline.ts, 7, 5))
 >makeAdder : Symbol(makeAdder, Decl(pipeline.ts, 4, 5))
 
+const zeroOrOne = () => (Math.floor(Math.random() * 2)) % 2;
+>zeroOrOne : Symbol(zeroOrOne, Decl(pipeline.ts, 9, 5))
+>Math.floor : Symbol(Math.floor, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>floor : Symbol(Math.floor, Decl(lib.es5.d.ts, --, --))
+>Math.random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+>Math : Symbol(Math, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --))
+>random : Symbol(Math.random, Decl(lib.es5.d.ts, --, --))
+
+const ternaryFunctions = 11 |>
+>ternaryFunctions : Symbol(ternaryFunctions, Decl(pipeline.ts, 10, 5))
+
+	(zeroOrOne() === 0
+>zeroOrOne : Symbol(zeroOrOne, Decl(pipeline.ts, 9, 5))
+
+		? (x: number) => x - 1
+>x : Symbol(x, Decl(pipeline.ts, 12, 5))
+>x : Symbol(x, Decl(pipeline.ts, 12, 5))
+
+		: (x: number) => x + 1
+>x : Symbol(x, Decl(pipeline.ts, 13, 5))
+>x : Symbol(x, Decl(pipeline.ts, 13, 5))
+
+	);
+

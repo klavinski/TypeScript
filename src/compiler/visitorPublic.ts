@@ -490,6 +490,12 @@ namespace ts {
                     nodesVisitor((<CallExpression>node).typeArguments, visitor, isTypeNode),
                     nodesVisitor((<CallExpression>node).arguments, visitor, isExpression));
 
+            case SyntaxKind.PipelineExpression:
+                return updatePipeline(<PipelineExpression>node,
+                    visitNode((<PipelineExpression>node).expression, visitor, isExpression),
+                    nodesVisitor((<PipelineExpression>node).typeArguments, visitor, isTypeNode),
+                    nodesVisitor((<PipelineExpression>node).arguments, visitor, isExpression));
+
             case SyntaxKind.NewExpression:
                 return updateNew(<NewExpression>node,
                     visitNode((<NewExpression>node).expression, visitor, isExpression),

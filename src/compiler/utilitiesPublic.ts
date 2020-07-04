@@ -453,10 +453,13 @@ namespace ts {
         return id.length >= 3 && id.charCodeAt(0) === CharacterCodes._ && id.charCodeAt(1) === CharacterCodes._ && id.charCodeAt(2) === CharacterCodes._ ? id.substr(1) : id;
     }
 
-    export function idText(identifier: Identifier): string {
-        return unescapeLeadingUnderscores(identifier.escapedText);
+    export function idText(identifierOrPrivateName: Identifier | PrivateIdentifier): string {
+        return unescapeLeadingUnderscores(identifierOrPrivateName.escapedText);
     }
     export function symbolName(symbol: Symbol): string {
+        if (symbol.valueDeclaration && isPrivateIdentifierPropertyDeclaration(symbol.valueDeclaration)) {
+            return idText(symbol.valueDeclaration.name);
+        }
         return unescapeLeadingUnderscores(symbol.escapedName);
     }
 
@@ -465,7 +468,7 @@ namespace ts {
      * attempt to draw the name from the node the declaration is on (as that declaration is what its' symbol
      * will be merged with)
      */
-    function nameForNamelessJSDocTypedef(declaration: JSDocTypedefTag | JSDocEnumTag): Identifier | undefined {
+    function nameForNamelessJSDocTypedef(declaration: JSDocTypedefTag | JSDocEnumTag): Identifier | PrivateIdentifier | undefined {
         const hostNode = declaration.parent.parent;
         if (!hostNode) {
             return undefined;
@@ -524,7 +527,7 @@ namespace ts {
         return false;
     }
 
-    export function getNameOfJSDocTypedef(declaration: JSDocTypedefTag): Identifier | undefined {
+    export function getNameOfJSDocTypedef(declaration: JSDocTypedefTag): Identifier | PrivateIdentifier | undefined {
         return declaration.name || nameForNamelessJSDocTypedef(declaration);
     }
 
@@ -668,6 +671,11 @@ namespace ts {
         return getFirstJSDocTag(node, isJSDocAugmentsTag);
     }
 
+    /** Gets the JSDoc implements tags for the node if present */
+    export function getJSDocImplementsTags(node: Node): readonly JSDocImplementsTag[] {
+        return getAllJSDocTags(node, isJSDocImplementsTag);
+    }
+
     /** Gets the JSDoc class tag for the node if present */
     export function getJSDocClassTag(node: Node): JSDocClassTag | undefined {
         return getFirstJSDocTag(node, isJSDocClassTag);
@@ -761,7 +769,7 @@ namespace ts {
                 const sig = find(type.members, isCallSignatureDeclaration);
                 return sig && sig.type;
             }
-            if (isFunctionTypeNode(type)) {
+            if (isFunctionTypeNode(type) || isJSDocFunctionType(type)) {
                 return type.type;
             }
         }
@@ -784,7 +792,12 @@ namespace ts {
         return find(getJSDocTags(node), predicate);
     }
 
-    /** Gets all JSDoc tags of a specified kind, or undefined if not present. */
+    /** Gets all JSDoc tags that match a specified predicate */
+    export function getAllJSDocTags<T extends JSDocTag>(node: Node, predicate: (tag: JSDocTag) => tag is T): readonly T[] {
+        return getJSDocTags(node).filter(predicate);
+    }
+
+    /** Gets all JSDoc tags of a specified kind */
     export function getAllJSDocTagsOfKind(node: Node, kind: SyntaxKind): readonly JSDocTag[] {
         return getJSDocTags(node).filter(doc => doc.kind === kind);
     }
@@ -876,6 +889,14 @@ namespace ts {
 
     export function isComputedPropertyName(node: Node): node is ComputedPropertyName {
         return node.kind === SyntaxKind.ComputedPropertyName;
+    }
+
+    export function isPrivateIdentifier(node: Node): node is PrivateIdentifier {
+        return node.kind === SyntaxKind.PrivateIdentifier;
+    }
+
+    export function isIdentifierOrPrivateIdentifier(node: Node): node is Identifier | PrivateIdentifier {
+        return node.kind === SyntaxKind.Identifier || node.kind === SyntaxKind.PrivateIdentifier;
     }
 
     // Signature elements
@@ -1065,17 +1086,18 @@ namespace ts {
         return isCallExpression(node) && !!(node.flags & NodeFlags.OptionalChain);
     }
 
-    export function isOptionalChain(node: Node): node is PropertyAccessChain | ElementAccessChain | CallChain {
+    export function isOptionalChain(node: Node): node is PropertyAccessChain | ElementAccessChain | CallChain | NonNullChain {
         const kind = node.kind;
         return !!(node.flags & NodeFlags.OptionalChain) &&
             (kind === SyntaxKind.PropertyAccessExpression
                 || kind === SyntaxKind.ElementAccessExpression
-                || kind === SyntaxKind.CallExpression);
+                || kind === SyntaxKind.CallExpression
+                || kind === SyntaxKind.NonNullExpression);
     }
 
     /* @internal */
     export function isOptionalChainRoot(node: Node): node is OptionalChainRoot {
-        return isOptionalChain(node) && !!node.questionDotToken;
+        return isOptionalChain(node) && !isNonNullExpression(node) && !!node.questionDotToken;
     }
 
     /**
@@ -1090,17 +1112,18 @@ namespace ts {
      * Determines whether a node is the outermost `OptionalChain` in an ECMAScript `OptionalExpression`:
      *
      * 1. For `a?.b.c`, the outermost chain is `a?.b.c` (`c` is the end of the chain starting at `a?.`)
-     * 2. For `(a?.b.c).d`, the outermost chain is `a?.b.c` (`c` is the end of the chain starting at `a?.` since parens end the chain)
-     * 3. For `a?.b.c?.d`, both `a?.b.c` and `a?.b.c?.d` are outermost (`c` is the end of the chain starting at `a?.`, and `d` is
+     * 2. For `a?.b!`, the outermost chain is `a?.b` (`b` is the end of the chain starting at `a?.`)
+     * 3. For `(a?.b.c).d`, the outermost chain is `a?.b.c` (`c` is the end of the chain starting at `a?.` since parens end the chain)
+     * 4. For `a?.b.c?.d`, both `a?.b.c` and `a?.b.c?.d` are outermost (`c` is the end of the chain starting at `a?.`, and `d` is
      *   the end of the chain starting at `c?.`)
-     * 4. For `a?.(b?.c).d`, both `b?.c` and `a?.(b?.c)d` are outermost (`c` is the end of the chain starting at `b`, and `d` is
+     * 5. For `a?.(b?.c).d`, both `b?.c` and `a?.(b?.c)d` are outermost (`c` is the end of the chain starting at `b`, and `d` is
      *   the end of the chain starting at `a?.`)
      */
     /* @internal */
     export function isOutermostOptionalChain(node: OptionalChain) {
-        return !isOptionalChain(node.parent) // cases 1 and 2
-            || isOptionalChainRoot(node.parent) // case 3
-            || node !== node.parent.expression; // case 4
+        return !isOptionalChain(node.parent) // cases 1, 2, and 3
+            || isOptionalChainRoot(node.parent) // case 4
+            || node !== node.parent.expression; // case 5
     }
 
     export function isNullishCoalesce(node: Node) {
@@ -1131,11 +1154,7 @@ namespace ts {
     export function skipPartiallyEmittedExpressions(node: Expression): Expression;
     export function skipPartiallyEmittedExpressions(node: Node): Node;
     export function skipPartiallyEmittedExpressions(node: Node) {
-        while (node.kind === SyntaxKind.PartiallyEmittedExpression) {
-            node = (<PartiallyEmittedExpression>node).expression;
-        }
-
-        return node;
+        return skipOuterExpressions(node, OuterExpressionKinds.PartiallyEmittedExpressions);
     }
 
     export function isFunctionExpression(node: Node): node is FunctionExpression {
@@ -1174,6 +1193,10 @@ namespace ts {
         return node.kind === SyntaxKind.BinaryExpression;
     }
 
+    export function isPipelineExpression(node: Node): node is PipelineExpression {
+        return node.kind === SyntaxKind.PipelineExpression;
+    }
+
     export function isConditionalExpression(node: Node): node is ConditionalExpression {
         return node.kind === SyntaxKind.ConditionalExpression;
     }
@@ -1208,6 +1231,10 @@ namespace ts {
 
     export function isNonNullExpression(node: Node): node is NonNullExpression {
         return node.kind === SyntaxKind.NonNullExpression;
+    }
+
+    export function isNonNullChain(node: Node): node is NonNullChain {
+        return isNonNullExpression(node) && !!(node.flags & NodeFlags.OptionalChain);
     }
 
     export function isMetaProperty(node: Node): node is MetaProperty {
@@ -1571,6 +1598,10 @@ namespace ts {
         return node.kind === SyntaxKind.JSDocAugmentsTag;
     }
 
+    export function isJSDocImplementsTag(node: Node): node is JSDocImplementsTag {
+        return node.kind === SyntaxKind.JSDocImplementsTag;
+    }
+
     export function isJSDocClassTag(node: Node): node is JSDocClassTag {
         return node.kind === SyntaxKind.JSDocClassTag;
     }
@@ -1710,6 +1741,20 @@ namespace ts {
         return isImportSpecifier(node) || isExportSpecifier(node);
     }
 
+    export function isTypeOnlyImportOrExportDeclaration(node: Node): node is TypeOnlyCompatibleAliasDeclaration {
+        switch (node.kind) {
+            case SyntaxKind.ImportSpecifier:
+            case SyntaxKind.ExportSpecifier:
+                return (node as ImportOrExportSpecifier).parent.parent.isTypeOnly;
+            case SyntaxKind.NamespaceImport:
+                return (node as NamespaceImport).parent.isTypeOnly;
+            case SyntaxKind.ImportClause:
+                return (node as ImportClause).isTypeOnly;
+            default:
+                return false;
+        }
+    }
+
     export function isStringTextContainingNode(node: Node): node is StringLiteral | TemplateLiteralToken {
         return node.kind === SyntaxKind.StringLiteral || isTemplateLiteralKind(node.kind);
     }
@@ -1719,6 +1764,17 @@ namespace ts {
     /* @internal */
     export function isGeneratedIdentifier(node: Node): node is GeneratedIdentifier {
         return isIdentifier(node) && (node.autoGenerateFlags! & GeneratedIdentifierFlags.KindMask) > GeneratedIdentifierFlags.None;
+    }
+
+    // Private Identifiers
+    /*@internal*/
+    export function isPrivateIdentifierPropertyDeclaration(node: Node): node is PrivateIdentifierPropertyDeclaration {
+        return isPropertyDeclaration(node) && isPrivateIdentifier(node.name);
+    }
+
+    /*@internal*/
+    export function isPrivateIdentifierPropertyAccessExpression(node: Node): node is PrivateIdentifierPropertyAccessExpression {
+        return isPropertyAccessExpression(node) && isPrivateIdentifier(node.name);
     }
 
     // Keywords
@@ -1765,6 +1821,7 @@ namespace ts {
     export function isPropertyName(node: Node): node is PropertyName {
         const kind = node.kind;
         return kind === SyntaxKind.Identifier
+            || kind === SyntaxKind.PrivateIdentifier
             || kind === SyntaxKind.StringLiteral
             || kind === SyntaxKind.NumericLiteral
             || kind === SyntaxKind.ComputedPropertyName;
@@ -2035,6 +2092,7 @@ namespace ts {
             case SyntaxKind.ElementAccessExpression:
             case SyntaxKind.NewExpression:
             case SyntaxKind.CallExpression:
+            case SyntaxKind.PipelineExpression:
             case SyntaxKind.JsxElement:
             case SyntaxKind.JsxSelfClosingElement:
             case SyntaxKind.JsxFragment:
@@ -2433,7 +2491,7 @@ namespace ts {
 
     /** True if node is of a kind that may contain comment text. */
     export function isJSDocCommentContainingNode(node: Node): boolean {
-        return node.kind === SyntaxKind.JSDocComment || isJSDocTag(node) || isJSDocTypeLiteral(node) || isJSDocSignature(node);
+        return node.kind === SyntaxKind.JSDocComment || node.kind === SyntaxKind.JSDocNamepathType || isJSDocTag(node) || isJSDocTypeLiteral(node) || isJSDocSignature(node);
     }
 
     // TODO: determine what this does before making it public.
@@ -2471,9 +2529,19 @@ namespace ts {
     }
 
     /** True if has initializer node attached to it. */
-    /* @internal */
     export function hasOnlyExpressionInitializer(node: Node): node is HasExpressionInitializer {
-        return hasInitializer(node) && !isForStatement(node) && !isForInStatement(node) && !isForOfStatement(node) && !isJsxAttribute(node);
+        switch (node.kind) {
+            case SyntaxKind.VariableDeclaration:
+            case SyntaxKind.Parameter:
+            case SyntaxKind.BindingElement:
+            case SyntaxKind.PropertySignature:
+            case SyntaxKind.PropertyDeclaration:
+            case SyntaxKind.PropertyAssignment:
+            case SyntaxKind.EnumMember:
+                return true;
+            default:
+                return false;
+        }
     }
 
     export function isObjectLiteralElement(node: Node): node is ObjectLiteralElement {

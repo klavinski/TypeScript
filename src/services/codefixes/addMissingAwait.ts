@@ -68,7 +68,9 @@ namespace ts.codefix {
                     makeChange(t, errorCode, sourceFile, checker, expression, fixedDeclarations);
                 }
             });
-            return createCodeFixActionNoFixId(
+            // No fix-all because it will already be included once with the use site fix,
+            // and for simplicity the fix-all doesn‘t let the user choose between use-site and declaration-site fixes.
+            return createCodeFixActionWithoutFixAll(
                 "addMissingAwaitToInitializer",
                 initializerChanges,
                 awaitableInitializers.initializers.length === 1
@@ -209,7 +211,7 @@ namespace ts.codefix {
             reference;
         const diagnostic = find(diagnostics, diagnostic =>
             diagnostic.start === errorNode.getStart(sourceFile) &&
-            diagnostic.start + diagnostic.length! === errorNode.getEnd());
+            (diagnostic.start + diagnostic.length!) === errorNode.getEnd());
 
         return diagnostic && contains(errorCodes, diagnostic.code) ||
             // A Promise is usually not correct in a binary expression (it’s not valid
